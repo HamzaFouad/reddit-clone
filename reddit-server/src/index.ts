@@ -13,6 +13,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import dotenv from "dotenv";
 import { MyContext } from "./types";
+import cors from "cors";
 
 dotenv.config();
 
@@ -25,6 +26,9 @@ const main = async () => {
   const RedisStore = connectRedis(session);
   const redis = new Redis(process.env.REDIS_URL);
 
+  app.use(
+    cors({ origin: `${process.env.UI_APPLICATION_URL}`, credentials: true })
+  );
   app.use(
     session({
       name: "qid",
@@ -49,7 +53,10 @@ const main = async () => {
     context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
   });
 
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({
+    app,
+    cors: false,
+  });
   app.listen(4000, () => {
     console.log("server started on localhost:4000");
   });
